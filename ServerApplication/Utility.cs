@@ -23,7 +23,7 @@ namespace ServerApplication
             //byte[] arr = null;
 
             //try
-            //{
+            //{z
             //    int size = Marshal.SizeOf(header);
             //    arr = new byte[size];
             //    IntPtr ptr = Marshal.AllocHGlobal(size);
