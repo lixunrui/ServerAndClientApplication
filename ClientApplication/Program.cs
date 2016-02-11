@@ -31,9 +31,16 @@ namespace ClientApplication
             Console.ReadKey();
         }
 
-        static void client_ServerEvent(object sender, string response)
+        static void client_ServerEvent(object sender, object response)
         {
-            Console.WriteLine("Message From Server:\n{0}\n\n", response);
+            HeaderMsg header = (HeaderMsg)response;
+            StringBuilder builder = new StringBuilder();
+            builder.Append(String.Format("ID:{0}\n", header.messageID));
+            builder.Append(String.Format("From:{0}\n", header.messageFrom));
+            builder.Append(String.Format("To:{0}\n", header.messageTO));
+            builder.Append(String.Format("Rest Size:{0}", header.messageSize));
+
+            Console.WriteLine("Message From Server:\n{0}\n", builder.ToString());
         }
     }
 }

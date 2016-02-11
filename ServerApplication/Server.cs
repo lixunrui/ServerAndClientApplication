@@ -6,16 +6,15 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
+
 namespace ServerApplication
 {
-    internal struct HeaderMsg
-    {
-        int messageID;
-        int messageSize;
-    }
-
     internal class Server
     {
+        static internal int sequence = 0;
+
+        List<string> clients;
+
         TcpListener serverListener;
         TcpClient clientSocket;
         AutoResetEvent stopServer;
@@ -32,15 +31,12 @@ namespace ServerApplication
 
             serverListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-            //IPEndPoint clientIP = new IPEndPoint(serverIP, 80);
-
-            //serverListener.Server.Bind(clientIP);
-
-
-           // serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             clientSocket = new TcpClient();
             stopServer = resetEvent;
+
+            // init clients
+            clients = new List<string>();
         }
         /// <summary>
         /// Start the server
@@ -74,28 +70,36 @@ namespace ServerApplication
                         clientSocket = serverListener.AcceptTcpClient();
 
                         Console.WriteLine("Connected");
+                        
+                        
                     }
-                        NetworkStream networkStream = clientSocket.GetStream();
+                    NetworkStream networkStream = clientSocket.GetStream();
 
-                        byte[] bytesFrom = new byte[10240];
+                    byte[] bytesFrom = new byte[10240];
 
-                        networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
+                    networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
 
-                        string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom);
+                    string dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom);
 
-                        dataFromClient = dataFromClient.TrimEnd('\0');
+                    dataFromClient = dataFromClient.TrimEnd('\0');
 
-                        Console.WriteLine("Data From Client {0}:\n{1}\n\n", ((IPEndPoint)clientSocket.Client.RemoteEndPoint).Address.ToString(), dataFromClient);
+                    Console.WriteLine("Data From Client {0}:\n{1}\n", ((IPEndPoint)clientSocket.Client.RemoteEndPoint).Address.ToString(), dataFromClient);
 
-                        string serverResponse = "Data Received";
+                   // string serverResponse = "Data Received";
 
-                        byte[] sendBytes = Encoding.ASCII.GetBytes(serverResponse);
+                    HeaderMsg header = new HeaderMsg();
+                    header.messageID = sequence++;
+                    header.messageFrom = "server";
+                    header.messageTO = ((IPEndPoint)clientSocket.Client.RemoteEndPoint).Address.ToString();
+                    header.messageSize = 0;
 
-                        networkStream.Write(sendBytes, 0, sendBytes.Length);
+                    byte[] sendBytes = Utility.GetBytesFromStruct(header);
 
-                        networkStream.Flush();
+                    networkStream.Write(sendBytes, 0, sendBytes.Length);
 
-                        Console.WriteLine("Response Sent");
+                    networkStream.Flush();
+
+                    Console.WriteLine("Response Sent");
                    
                 }
                 catch (System.Exception ex)
@@ -111,7 +115,8 @@ namespace ServerApplication
                 stopServer.Set();
                 return;
             }
-        }
+        }// run server
 
+        
     }
 }

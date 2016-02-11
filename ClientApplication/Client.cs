@@ -15,7 +15,7 @@ namespace ClientApplication
 
         AutoResetEvent serverEvent = new AutoResetEvent(false);
 
-        internal delegate void ResponseFromServerEventHandler(object sender, string response);
+        internal delegate void ResponseFromServerEventHandler(object sender, object response);
 
         internal event ResponseFromServerEventHandler ServerEvent;
 
@@ -25,8 +25,6 @@ namespace ClientApplication
             Thread connection = new Thread(() => StartConenction());
             connection.Start();
         }
-
-    
 
         internal void Send(string msg)
         {
@@ -46,13 +44,12 @@ namespace ClientApplication
 
                     networkStream.Read(responseByte, 0, (int)clientSocket.ReceiveBufferSize);
 
-                    string responseData = Encoding.ASCII.GetString(responseByte);
-
-                    responseData = responseData.TrimEnd('\0');
+                    //string responseData = Encoding.ASCII.GetString(responseByte);
+                    HeaderMsg header = Utility.GetStructFromBytes(responseByte);
 
                     if (ServerEvent != null)
                     {
-                        ServerEvent(this, responseData);
+                        ServerEvent(this, header);
                     }
 
                 }
